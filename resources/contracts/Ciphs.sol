@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at Etherscan.io on 2018-01-31
+ */
+
 pragma solidity ^0.4.15;
 
 library SafeMath {
@@ -11,9 +15,9 @@ library SafeMath {
     }
 
     function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        assert(b > 0); // Solidity automatically throws when dividing by 0
+        // assert(b > 0); // Solidity automatically throws when dividing by 0
         uint256 c = a / b;
-        assert(a == b * c + (a % b)); // There is no case in which this doesn't hold
+        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
         return c;
     }
 
@@ -29,25 +33,43 @@ library SafeMath {
     }
 }
 
-contract Token {
-    // uint256 public totalSupply;
+contract Ownable {
+    address public owner;
 
+    event OwnershipTransferred(
+        address indexed previousOwner,
+        address indexed newOwner
+    );
+
+    function Ownable() public {
+        owner = msg.sender;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+
+    function transferOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0));
+        OwnershipTransferred(owner, newOwner);
+        owner = newOwner;
+    }
+
+    function getOwner() public view returns (address) {
+        return owner;
+    }
+}
+
+contract Token {
+    //uint256 public totalSupply;
     function totalSupply() constant returns (uint256 supply);
 
-    function balanceOf(address _owner) constant returns (uint256 balance); //
+    function balanceOf(address _owner) constant returns (uint256 balance);
 
-    function transfer(
-        address to,
-        uint256 value,
-        bytes data
-    ) returns (bool ok); //
+    //function transfer(address to, uint value, bytes data) returns (bool ok);
 
-    function transferFrom(
-        address from,
-        address to,
-        uint256 value,
-        bytes data
-    ) returns (bool ok);
+    //function transferFrom(address from, address to, uint value, bytes data) returns (bool ok);
 
     function transfer(address _to, uint256 _value) returns (bool success);
 
@@ -71,20 +93,11 @@ contract Token {
     );
 }
 
-contract ERC223Receiver {
-    function tokenFallback(
-        address _sender,
-        address _origin,
-        uint256 _value,
-        bytes _data
-    ) returns (bool ok);
-}
-
 contract StandardToken is Token {
     uint256 _totalSupply;
 
-    function totalSupply() constant returns (uint256) {
-        return _totalSupply;
+    function totalSupply() constant returns (uint256 totalSupply) {
+        totalSupply = _totalSupply;
     }
 
     function transfer(address _to, uint256 _value) returns (bool success) {
@@ -97,6 +110,7 @@ contract StandardToken is Token {
             balances[_to] += _value;
             last_seen[msg.sender] = now;
             last_seen[_to] = now;
+            //investors.push(_to) -1;
             Transfer(msg.sender, _to, _value);
             return true;
         } else {
@@ -121,6 +135,7 @@ contract StandardToken is Token {
             allowed[_from][msg.sender] -= _value;
             Transfer(_from, _to, _value);
             last_seen[_from] = now;
+            //investors.push(_to) -1;
             last_seen[_to] = now;
             return true;
         } else {
@@ -157,84 +172,17 @@ contract StandardToken is Token {
 
     mapping(address => uint256) balances;
     mapping(address => mapping(address => uint256)) allowed;
+
     mapping(address => uint256) last_seen;
 }
 
-contract Ownable {
-    address public owner;
-    event OwnershipTransferred(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
-
-    function Ownable() public {
-        owner = msg.sender;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-    }
-
-    function transferOwnership(address newOwner) public onlyOwner {
-        require(newOwner != address(0));
-
-        OwnershipTransferred(owner, newOwner);
-        owner = newOwner;
-    }
-
-    function getOwner() public view returns (address) {
-        return owner;
-    }
-}
-
-contract Standard223Receiver is ERC223Receiver {
-    Tkn tkn;
-    bool __isTokenFallback;
-
-    struct Tkn {
-        address addr;
-        address sender;
-        address origin;
-        uint256 value;
-        bytes data;
-        bytes4 sig;
-    }
-
+contract ERC223Receiver {
     function tokenFallback(
         address _sender,
         address _origin,
         uint256 _value,
         bytes _data
-    ) returns (bool ok) {
-        //
-        if (!supportsToken(msg.sender)) return false; // Problem: This will do a sstore which is expensive gas wise. Find a way to keep it in memory.
-        tkn = Tkn(msg.sender, _sender, _origin, _value, _data, getSig(_data));
-        __isTokenFallback = true;
-
-        if (!address(this).delegatecall(_data)) return false;
-        // avoid doing an overwrite to .token, which would be more expensive
-        // makes accessing .tkn values outside tokenPayable functions unsafe
-        __isTokenFallback = false;
-        return true;
-    }
-
-    function getSig(bytes _data) private returns (bytes4 sig) {
-        uint256 l = _data.length < 4 ? _data.length : 4;
-
-        for (uint256 i = 0; i < l; i++) {
-            sig = bytes4(
-                uint256(sig) + uint256(_data[i]) * (2**(8 * (l - 1 - i)))
-            );
-        }
-    }
-
-    modifier tokenPayable() {
-        if (!__isTokenFallback) throw;
-        _;
-    } //
-
-    function supportsToken(address token) returns (bool);
+    ) returns (bool ok);
 }
 
 contract Standard223Token is StandardToken {
@@ -245,12 +193,12 @@ contract Standard223Token is StandardToken {
         bytes _data
     ) returns (bool success) {
         //filtering if the target is a contract with bytecode inside it
-        if (!super.transfer(_to, _value)) throw;
-        // do a normal token transfer
+        if (!super.transfer(_to, _value)) throw; // do a normal token transfer
         if (isContract(_to))
             return contractFallback(msg.sender, _to, _value, _data);
         last_seen[msg.sender] = now;
         last_seen[_to] = now;
+        //investors.push(_to) -1;
         return true;
     }
 
@@ -260,18 +208,17 @@ contract Standard223Token is StandardToken {
         uint256 _value,
         bytes _data
     ) returns (bool success) {
-        if (!super.transferFrom(_from, _to, _value)) throw;
-        // do a normal token transfer
+        if (!super.transferFrom(_from, _to, _value)) throw; // do a normal token transfer
         if (isContract(_to)) return contractFallback(_from, _to, _value, _data);
         last_seen[_from] = now;
         last_seen[_to] = now;
+        //investors.push(_to) -1;
         return true;
-    } //
-
-    function transfer(address _to, uint256 _value) returns (bool success) {
-        //
-        return transfer(_to, _value, new bytes(0)); //
     }
+
+    //function transfer(address _to, uint _value) returns (bool success) {
+    //return transfer(_to, _value, new bytes(0));
+    //}
 
     function transferFrom(
         address _from,
@@ -281,6 +228,7 @@ contract Standard223Token is StandardToken {
         return transferFrom(_from, _to, _value, new bytes(0));
         last_seen[_from] = now;
         last_seen[_to] = now;
+        //investors.push(_to) -1;
     }
 
     //function that is called when transaction target is a contract
@@ -305,41 +253,79 @@ contract Standard223Token is StandardToken {
     }
 }
 
-contract Ciphs is Standard223Receiver, Standard223Token, Ownable {
+contract Standard223Receiver is ERC223Receiver {
+    Tkn tkn;
+
+    struct Tkn {
+        address addr;
+        address sender;
+        address origin;
+        uint256 value;
+        bytes data;
+        bytes4 sig;
+    }
+
+    function tokenFallback(
+        address _sender,
+        address _origin,
+        uint256 _value,
+        bytes _data
+    ) returns (bool ok) {
+        //if (!supportsToken(msg.sender)) return false;
+
+        // Problem: This will do a sstore which is expensive gas wise. Find a way to keep it in memory.
+        tkn = Tkn(msg.sender, _sender, _origin, _value, _data, getSig(_data));
+        __isTokenFallback = true;
+        if (!address(this).delegatecall(_data)) return false;
+
+        // avoid doing an overwrite to .token, which would be more expensive
+        // makes accessing .tkn values outside tokenPayable functions unsafe
+        __isTokenFallback = false;
+
+        return true;
+    }
+
+    function getSig(bytes _data) private returns (bytes4 sig) {
+        uint256 l = _data.length < 4 ? _data.length : 4;
+        for (uint256 i = 0; i < l; i++) {
+            sig = bytes4(
+                uint256(sig) + uint256(_data[i]) * (2**(8 * (l - 1 - i)))
+            );
+        }
+    }
+
+    bool __isTokenFallback;
+
+    modifier tokenPayable() {
+        if (!__isTokenFallback) throw;
+        _;
+    }
+
+    //function supportsToken(address token) returns (bool);
+}
+
+contract ciphCommunity is Standard223Receiver, Standard223Token, Ownable {
     using SafeMath for uint256;
-    string public constant name = "Ciphs";
-    string public constant symbol = "CIPHS";
-    uint8 public constant decimals = 18;
-    uint256 public rate = 1000000;
-    bool propose = false;
-    uint256 prosposal_time = 0;
-    uint256 raisedAmount = 0;
-    uint256 public constant INITIAL_SUPPLY = 7000000e18;
-    uint256 public constant MAX_SUPPLY = 860000000000e18; //uint256 public totalSupply;
-    address[] investors;
+    //uint256 public totalSupply;
+
     uint256 up = 0;
     uint256 down = 0;
+
+    bool propose = false;
+    uint256 prosposal_time = 0;
+    uint256 public constant MAX_SUPPLY = 860000000000e18;
     mapping(address => uint256) votes;
     mapping(address => mapping(address => uint256)) public trackable;
     mapping(address => mapping(uint256 => uint256)) public trackable_record;
+    address[] investors;
     mapping(address => uint256) public bannable;
     mapping(address => uint256) internal support_ban;
-    mapping(address => uint256) internal against_ban; //
-    event Approval(
-        address indexed owner,
-        address indexed spender,
-        uint256 value
-    ); //
-    event Transfer(address indexed from, address indexed to, uint256 value);
-    event BoughtTokens(address indexed to, uint256 value);
+    mapping(address => uint256) internal against_ban;
+
     event Votes(address indexed owner, uint256 value);
-    event Burn(address indexed burner, uint256 value);
     event Mint(uint256 value);
 
-    function Ciphs() public {
-        _totalSupply = INITIAL_SUPPLY;
-        balances[msg.sender] = INITIAL_SUPPLY;
-    }
+    function() public payable {}
 
     function initialize_proposal() public {
         if (propose) throw;
@@ -356,19 +342,9 @@ contract Ciphs is Standard223Receiver, Standard223Token, Ownable {
         }
     }
 
-    modifier canMint() {
-        if (
-            propose &&
-            is_proposal_supported() &&
-            now > prosposal_time.add(7 * 1 days)
-        ) _;
-        else throw;
-    }
-
     function distribute_token() {
         uint256 investors_num = investors.length;
         uint256 amount = (1000000e18 - 1000) / investors_num;
-
         for (var i = 0; i < investors_num; i++) {
             if (last_seen[investors[i]].add(90 * 1 days) > now) {
                 balances[investors[i]] += amount;
@@ -401,12 +377,12 @@ contract Ciphs is Standard223Receiver, Standard223Token, Ownable {
                 propose = false;
                 prosposal_time = 0;
                 up = 0;
-                down = 0; //
-                return true;
+                down = 0;
+                //return true;
             }
         }
-        last_seen[msg.sender] = now; //
-        return false;
+        last_seen[msg.sender] = now;
+        //return false;
     }
 
     function support_proposal() public returns (bool) {
@@ -445,21 +421,20 @@ contract Ciphs is Standard223Receiver, Standard223Token, Ownable {
         if (balances[_bannable_address] > 0) {
             transferFrom(_bannable_address, owner, balances[_bannable_address]);
         }
-
         delete balances[_bannable_address];
-        uint256 investors_num = investors.length;
 
+        uint256 investors_num = investors.length;
         for (var i = 0; i < investors_num; i++) {
             if (investors[i] == _bannable_address) {
                 delete investors[i];
             }
         }
-        // delete investors[];
+        //delete investors[];
     }
 
     function ban_check(address _bannable_address) internal {
-        last_seen[msg.sender] = now; //
-        uint256 time_diff = now.sub(bannable[_bannable_address]);
+        last_seen[msg.sender] = now;
+        //uint256 time_diff = now.sub(bannable[_bannable_address]);
         if (now.sub(bannable[_bannable_address]) > 0.5 * 1 days) {
             if (
                 against_ban[_bannable_address].mul(4) <
@@ -520,8 +495,11 @@ contract Ciphs is Standard223Receiver, Standard223Token, Ownable {
 
     function trackable_likes(address _trackable) public returns (uint256) {
         uint256 num = 0;
-        //if (trackable[_trackable]) {
+        //if(trackable[_trackable])
+        //{
+
         num = trackable_record[_trackable][1];
+
         //}
         return num;
     }
@@ -531,25 +509,63 @@ contract Ciphs is Standard223Receiver, Standard223Token, Ownable {
         num = trackable_record[_trackable][2];
         return num;
     }
+}
 
-    function a() public payable {
+contract Ciphs is ciphCommunity {
+    //using SafeMath for uint256;
+
+    string public constant name = "Ciphs";
+    string public constant symbol = "CIPHS";
+    uint8 public constant decimals = 18;
+
+    uint256 public rate = 1000000e18;
+    uint256 raisedAmount = 0;
+    uint256 public constant INITIAL_SUPPLY = 7000000e18;
+
+    //event Approval(address indexed owner, address indexed spender, uint256 value);
+    //event Transfer(address indexed from, address indexed to, uint256 value);
+    event BoughtTokens(address indexed to, uint256 value);
+
+    event Burn(address indexed burner, uint256 value);
+
+    function Ciphs() public {
+        _totalSupply = INITIAL_SUPPLY;
+        balances[msg.sender] = INITIAL_SUPPLY;
+    }
+
+    modifier canMint() {
+        if (
+            propose &&
+            is_proposal_supported() &&
+            now > prosposal_time.add(7 * 1 days)
+        ) _;
+        else throw;
+    }
+
+    function() public payable {
         buyTokens();
     }
 
     function buyTokens() public payable {
-        //
-        require(propose);
+        //require(propose);
+
         uint256 weiAmount = msg.value;
         uint256 tokens = weiAmount.mul(getRate());
+
         tokens = tokens.div(1 ether);
+
         BoughtTokens(msg.sender, tokens);
+
         balances[msg.sender] = balances[msg.sender].add(tokens);
         balances[owner] = balances[owner].sub(tokens);
         _totalSupply.sub(tokens);
+
         raisedAmount = raisedAmount.add(msg.value);
+
         investors.push(msg.sender) - 1;
-        last_seen[msg.sender] = now; //
-        owner.transfer(msg.value);
+
+        last_seen[msg.sender] = now;
+        //owner.transfer(msg.value);
     }
 
     function getInvestors() public view returns (address[]) {
@@ -566,6 +582,7 @@ contract Ciphs is Standard223Receiver, Standard223Token, Ownable {
 
     function burn(uint256 _value) public {
         require(_value > 0);
+
         address burner = msg.sender;
         balances[burner] = balances[burner].sub(_value);
         _totalSupply = _totalSupply.sub(_value);
@@ -573,7 +590,11 @@ contract Ciphs is Standard223Receiver, Standard223Token, Ownable {
         last_seen[msg.sender] = now;
     }
 
-    function destroy() public onlyOwner {
+    function sendEtherToOwner() public onlyOwner {
+        owner.transfer(this.balance);
+    }
+
+    function destroy() internal onlyOwner {
         selfdestruct(owner);
     }
 }
