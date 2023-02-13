@@ -3,7 +3,7 @@ Main module
 """
 import fire
 
-from benchmark.cli import Benchmark
+from benchmark.benchmark import Benchmark
 
 
 def main():

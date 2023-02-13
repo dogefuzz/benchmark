@@ -9,6 +9,7 @@ readme = "README.md"
 python = "^3.10"
 fire = "0.5.0"
 python-dotenv = "^0.21.1"
+tqdm = "^4.64.1"
 
 [build-system]
 requires = ["poetry-core"]
