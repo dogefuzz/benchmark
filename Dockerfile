@@ -19,5 +19,7 @@ RUN poetry install --no-dev --no-interaction --no-ansi
 
 COPY . /app
 
+EXPOSE 5000
+
 ENTRYPOINT [ "/bin/sh", "/app/entrypoint.sh" ]
 
