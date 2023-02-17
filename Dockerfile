@@ -19,6 +19,8 @@ RUN poetry install --no-dev --no-interaction --no-ansi
 
 COPY . /app
 
+RUN poetry run benchmark download_contracts
+
 EXPOSE 5000
 
 ENTRYPOINT [ "/bin/sh", "/app/entrypoint.sh" ]

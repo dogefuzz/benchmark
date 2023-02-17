@@ -4,11 +4,13 @@ Cli moodule
 
 
 from time import sleep
+from benchmark.services.contract import ContractService
 from benchmark.services.dogefuzz import DogefuzzService
 from benchmark.services.progress import ProgressService
 from benchmark.services.queue import QueueService
 from benchmark.services.server import ServerService
-from benchmark.utils.time import parse_timedelta
+from benchmark.services.drive import DriveService
+from benchmark.shared.time import parse_timedelta
 
 
 class Benchmark():
@@ -21,6 +23,8 @@ class Benchmark():
         self._progress_service = ProgressService()
         self._server_service = ServerService()
         self._queue = QueueService()
+        self._drive_service = DriveService()
+        self._contract_service = ContractService()
 
     def single(self, contract: str, duration: str, fuzzing_type: str, args: str = ""):
         """
@@ -53,16 +57,18 @@ class Benchmark():
         """
         print(f"duration = {duration}, fuzzing_type={fuzzing_type}")
 
-    def download_contracts(self, url: str):
+    def download_contracts(self):
         """
         download contracts from cloud
         """
-        print(f"url={url}")
+        self._drive_service.download_contracts()
 
-    def list_contracts(self):
+    def list_available_contracts(self):
         """
         list available contracts
         """
-        self._server_service.start()
-        sleep(5)
-        self._server_service.stop()
+        contracts = self._contract_service.list_contracts_from_contract_list()
+        print(f"read {len(contracts)} contracts:")
+        # print("\n".join(contracts))
+        for element in contracts:
+            print(element)

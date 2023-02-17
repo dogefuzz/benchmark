@@ -2,7 +2,7 @@
 """
 from queue import Queue
 from tqdm import tqdm
-from benchmark.utils.singleton import SingletonMeta
+from benchmark.shared.singleton import SingletonMeta
 
 
 class ProgressService(metaclass=SingletonMeta):

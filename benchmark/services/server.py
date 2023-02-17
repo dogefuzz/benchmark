@@ -4,7 +4,7 @@ this module contains the service related with HTTP server operations
 from multiprocessing import Process
 from flask import Flask
 from benchmark.server.app import app
-from benchmark.utils.singleton import SingletonMeta
+from benchmark.shared.singleton import SingletonMeta
 
 
 class ServerService(metaclass=SingletonMeta):

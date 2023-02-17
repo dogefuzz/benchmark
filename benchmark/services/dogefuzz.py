@@ -1,7 +1,7 @@
 """
 this module contains the service that communicate with dogefuzz
 """
-from benchmark.utils.singleton import SingletonMeta
+from benchmark.shared.singleton import SingletonMeta
 
 
 class DogefuzzService(metaclass=SingletonMeta):

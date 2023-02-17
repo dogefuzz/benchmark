@@ -1,7 +1,7 @@
 """
 """
 from queue import Queue
-from benchmark.utils.singleton import SingletonMeta
+from benchmark.shared.singleton import SingletonMeta
 
 
 class QueueService(metaclass=SingletonMeta):

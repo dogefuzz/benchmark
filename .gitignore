@@ -7,6 +7,7 @@ _$py.class
 # Project-generated files
 
 resources/
+.temp/
 
 # IDE-generated files
 
