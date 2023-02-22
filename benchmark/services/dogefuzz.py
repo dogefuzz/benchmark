@@ -1,11 +1,32 @@
 """
 this module contains the service that communicate with dogefuzz
 """
+from benchmark.config import Config
+from benchmark.shared.dogefuzz.api import StartTaskRequest
+from benchmark.shared.dogefuzz.client import DogefuzzClient
 from benchmark.shared.singleton import SingletonMeta
-from benchmark.shared.testing import Request
+from benchmark.shared.testing import Entry
 
 
 class DogefuzzService(metaclass=SingletonMeta):
+    """this class represents the service that performs operations with dogefuzz
+    """
 
-    def test_request(self, request: Request):
-        pass
+    def __init__(self) -> None:
+        self._config = Config()
+        self._client = DogefuzzClient(
+            self._config.dogefuzz_endpoint, self._config.dogefuzz_timeout)
+
+    def start_task(self, testing_entry: Entry, contract_source: str) -> str:
+        """creates a task in dogefuzz service
+        """
+        request = StartTaskRequest(
+            contract_source=contract_source,
+            contract_name=testing_entry.contract,
+            arguments=testing_entry.args,
+            duration=testing_entry.duration,
+            fuzzing_type=testing_entry.fuzzing_type,
+            detectors=self._config.detectors,
+        )
+        response = self._client.start_task(request)
+        return response.task_id

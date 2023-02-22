@@ -53,3 +53,13 @@ class ContractService():
                 contracts.append(contract)
 
         return contracts
+
+    def read_contract(self, contract_name: str) -> str:
+        """reads the contract's content
+        """
+        content = None
+        contract_path = os.path.join(
+            self._config.contracts_folder, "contracts", contract_name)
+        with open(contract_path, 'r', encoding="utf-8") as file:
+            content = file.text
+        return content

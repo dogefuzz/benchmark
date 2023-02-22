@@ -1,6 +1,7 @@
 """
 """
 from queue import Queue
+from benchmark.shared.dogefuzz.api import TaskReport
 from benchmark.shared.singleton import SingletonMeta
 
 
@@ -9,14 +10,22 @@ class QueueService(metaclass=SingletonMeta):
     def __init__(self) -> None:
         self._queue = Queue()
 
-    def put(self, item: any) -> None:
-        self._queue.put(item)
+    def put(self, report: TaskReport) -> None:
+        """puts report in the queue
+        """
+        self._queue.put(report)
 
     def is_empty(self) -> bool:
+        """checks if queue is empty
+        """
         return self._queue.empty()
 
-    def get(self) -> any:
+    def get(self) -> TaskReport:
+        """gets report from the queue
+        """
         return self._queue.get()
 
     def mark_done(self) -> bool:
+        """marks item as done in the queue to not be reprocessed
+        """
         return self._queue.task_done()

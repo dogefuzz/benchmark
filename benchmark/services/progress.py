@@ -28,13 +28,13 @@ class ProgressService(metaclass=SingletonMeta):
 
     def update_transaction_count(self, transactions_count: int) -> None:
         """
-        update transaction ocunt
+        update transaction count
         """
         self._progress_bar.set_postfix_str(
             f"transactions: {transactions_count}")
 
     def stop(self):
         """
-        stop the progress bar
+        stops the progress bar
         """
         self._progress_bar.close()
