@@ -1,0 +1,8 @@
+[
+  {
+    "name": "B0xProxy.sol",
+    "arguments": [],
+    "duration": "5m",
+    "fuzzing_type": "directed_greybox"
+  }
+]
