@@ -1,7 +1,7 @@
 """
 this module contains useful methods used in other parts of the project
 """
-from benchmark.shared.constants import DURATION_10M, DURATION_15M, DURATION_30M, DURATION_5M, DURATION_1M, FUZZING_TYPE_BLACKBOX_FUZZING, FUZZING_TYPE_DIRECTED_GREYBOX_FUZZING, FUZZING_TYPE_GREYBOX_FUZZING
+from benchmark.shared.constants import DURATION_60M, DURATION_10M, DURATION_15M, DURATION_30M, DURATION_5M, DURATION_1M, FUZZING_TYPE_BLACKBOX_FUZZING, FUZZING_TYPE_DIRECTED_GREYBOX_FUZZING, FUZZING_TYPE_GREYBOX_FUZZING
 from benchmark.shared.exceptions import InvalidDuration, InvalidFuzzingType
 
 
@@ -26,6 +26,7 @@ def validate_duration(duration: str) -> None:
         DURATION_10M,
         DURATION_15M,
         DURATION_30M,
+        DURATION_60M,
     ]
     if duration not in valid_values:
         raise InvalidDuration("an invalid duration was provided")
