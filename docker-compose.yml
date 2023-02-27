@@ -1,5 +1,9 @@
 version: "3.9"
 
+networks:
+  dogefuzz_benchmark:
+    name: dogefuzz_benchmark
+
 services:
   geth:
     container_name: dogefuzz_geth
@@ -17,20 +21,30 @@ services:
       AGENT_WALLET_BALANCE: '1000000000000000000000000' # 1000 ETH
       NODE_PASSWORD: '123456'
       GAS_LIMIT: '8000000'
-      FUZZER_HOST: 'host.docker.internal'
+      FUZZER_HOST: 'dogefuzz'
       FUZZER_PORT: '3456'
     ports:
       - "8545:8545"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    networks:
+      - dogefuzz_benchmark
   vandal:
     container_name: dogefuzz_vandal
     build: https://github.com/dogefuzz/vandal-api.git#main
     ports:
       - "5005:5000"
+    networks:
+      - dogefuzz_benchmark
   dogefuzz:
     container_name: dogefuzz_api
     build: https://github.com/dogefuzz/dogefuzz.git#main
     ports:
       - "3456:3456"
+    networks:
+      - dogefuzz_benchmark
+    restart: on-failure
+    environment:
+      DOGEFUZZ_REPORTER_WEBHOOKENDPOINT: "http://benchmark:5000"
+      DOGEFUZZ_VANDAL_ENDPOINT: "http://vandal:5000"
+      DOGEFUZZ_GETH_NODEADDRESS: "http://geth:8545"
+      DOGEFUZZ_FUZZER_BATCHSIZE: 1
 

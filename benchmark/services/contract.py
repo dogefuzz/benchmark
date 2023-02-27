@@ -61,5 +61,5 @@ class ContractService():
         contract_path = os.path.join(
             self._config.contracts_folder, "contracts", contract_name)
         with open(contract_path, 'r', encoding="utf-8") as file:
-            content = file.text
+            content = file.read()
         return content

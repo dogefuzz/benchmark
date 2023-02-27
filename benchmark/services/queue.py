@@ -1,6 +1,7 @@
 """
 """
-from queue import Queue
+from queue import Empty
+from multiprocessing import Queue
 from benchmark.shared.dogefuzz.api import TaskReport
 from benchmark.shared.singleton import SingletonMeta
 
@@ -23,9 +24,9 @@ class QueueService(metaclass=SingletonMeta):
     def get(self) -> TaskReport:
         """gets report from the queue
         """
-        return self._queue.get()
-
-    def mark_done(self) -> bool:
-        """marks item as done in the queue to not be reprocessed
-        """
-        return self._queue.task_done()
+        value = None
+        try:
+            value = self._queue.get_nowait()
+        except Empty:
+            return None
+        return value

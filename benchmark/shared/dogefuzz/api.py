@@ -78,6 +78,14 @@ class TimeSeriesData():
         """
         return self._y_axis
 
+    def to_dict(self):
+        """gets dictionary representation
+        """
+        return {
+            "x": self._x_axis,
+            "y": self._y_axis,
+        }
+
     @classmethod
     def from_json(cls, json_content: map):
         """deserializes object from json
@@ -148,6 +156,19 @@ class TransactionReport():
         """delta_min_distance property
         """
         return self._delta_min_distance
+
+    def to_dict(self):
+        """gets dictionary representation
+        """
+        return {
+            "timestamp": self._timestamp,
+            "blockchainHash": self._blockchain_hash,
+            "inputs": self._inputs,
+            "detectedWeaknesses": self._detected_weaknesses,
+            "executedInstructions": self._executed_instructions,
+            "delta_coverage": self._delta_coverage,
+            "delta_min_distance": self._delta_min_distance
+        }
 
     @classmethod
     def from_json(cls, json_content: map):
@@ -244,13 +265,29 @@ class TaskReport():
         """
         return self._detected_weaknesses
 
+    def to_dict(self):
+        """gets dictionary representation
+        """
+        return {
+            "timeElapsed": self._time_elapsed,
+            "contractName": self._contract_name,
+            "totalInstructions": self._total_instructions,
+            "coverage": self._coverage,
+            "minDistance": self._min_distance,
+            "detectedWeaknesses": self._detected_weaknesses,
+            "coverageByTime": self._coverage_by_time.to_dict(),
+            "minDistanceByTime": self._min_distance_by_time.to_dict(),
+            "transactions": [t.to_dict() for t in self._transactions],
+        }
+
     @classmethod
     def from_json(cls, json_content: map):
         """deserializes object form json
         """
         transactions = []
         for transaction_json in json_content["transactions"]:
-            transactions = TransactionReport.from_json(transaction_json)
+            transaction = TransactionReport.from_json(transaction_json)
+            transactions.append(transaction)
         return TaskReport(
             time_elapsed=json_content["timeElapsed"],
             contract_name=json_content["contractName"],

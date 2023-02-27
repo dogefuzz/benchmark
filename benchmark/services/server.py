@@ -20,7 +20,7 @@ class ServerService(metaclass=SingletonMeta):
         """
         starts the Flask server
         """
-        self._thread = Process(target=self._server.run)
+        self._thread = Process(target=self._start_server)
         self._thread.start()
 
     def stop(self) -> None:
@@ -28,3 +28,6 @@ class ServerService(metaclass=SingletonMeta):
         shutdown the Flask server
         """
         self._thread.terminate()
+
+    def _start_server(self):
+        self._server.run(host="0.0.0.0", debug=False, use_reloader=False)

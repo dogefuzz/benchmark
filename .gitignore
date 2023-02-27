@@ -13,3 +13,6 @@ resources/
 
 .vscode/
 .metals/
+
+# project results
+result.json

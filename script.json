@@ -2,7 +2,13 @@
   {
     "name": "B0xProxy.sol",
     "arguments": [],
-    "duration": "5m",
+    "duration": "1m",
+    "fuzzing_type": "directed_greybox"
+  },
+  {
+    "name": "CBToken.sol",
+    "arguments": [],
+    "duration": "1m",
     "fuzzing_type": "directed_greybox"
   }
 ]

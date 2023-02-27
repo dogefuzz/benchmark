@@ -1,6 +1,8 @@
 """
 this module contains the service that communicate with dogefuzz
 """
+from os.path import splitext
+
 from benchmark.config import Config
 from benchmark.shared.dogefuzz.api import StartTaskRequest
 from benchmark.shared.dogefuzz.client import DogefuzzClient
@@ -20,9 +22,10 @@ class DogefuzzService(metaclass=SingletonMeta):
     def start_task(self, testing_entry: Entry, contract_source: str) -> str:
         """creates a task in dogefuzz service
         """
+        filename_without_extension = splitext(testing_entry.contract)[0]
         request = StartTaskRequest(
             contract_source=contract_source,
-            contract_name=testing_entry.contract,
+            contract_name=filename_without_extension,
             arguments=testing_entry.args,
             duration=testing_entry.duration,
             fuzzing_type=testing_entry.fuzzing_type,

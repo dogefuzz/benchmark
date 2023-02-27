@@ -1,6 +1,6 @@
 """CLI moodule
 """
-
+import json
 
 from benchmark.services.contract import ContractService
 from benchmark.services.benchmark import BenchmarkService
@@ -27,7 +27,9 @@ class Benchmark():
         """
         request = self._script_service.read_testing_request_from_script()
         result = self._benchmark_service.run(request)
-        print(result)
+        with open("result.json", "w", encoding="utf-8") as file:
+            file.write(json.dumps(result, indent=4))
+        print("SUCCESS")
 
     def all(self, duration: str, fuzzing_type: str):
         """benchmarks all available contracts
@@ -40,7 +42,9 @@ class Benchmark():
             contracts, duration, fuzzing_type)
 
         result = self._benchmark_service.run(request)
-        print(result)
+        with open("result.json", "w", encoding="utf-8") as file:
+            file.write(json.dumps(result, indent=4))
+        print("SUCCESS")
 
     def download_contracts(self):
         """downloads contracts from cloud

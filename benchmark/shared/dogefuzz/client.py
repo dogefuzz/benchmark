@@ -19,10 +19,10 @@ class DogefuzzClient():
         """sends the request to dogefuzz to start fuzzing
         """
         payload = req.to_json()
-        res = requests.post(f"${self._endpoint}/tasks",
+        res = requests.post(f"{self._endpoint}/tasks",
                             data=payload, timeout=self._timeout)
         if res.status_code != 200:
             raise RequestFailedException(
-                f"not valid response ${res.status_code}")
+                f"not valid response {res.status_code}")
         body_content = res.json()
         return StartTaskResponse.from_json(body_content)

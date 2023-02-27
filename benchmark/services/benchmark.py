@@ -1,9 +1,11 @@
 """
 this module contains the service that communicate with dogefuzz
 """
+from time import sleep
 from benchmark.services.contract import ContractService
 from benchmark.services.dogefuzz import DogefuzzService
 from benchmark.services.progress import ProgressService
+from benchmark.services.queue import QueueService
 from benchmark.services.server import ServerService
 from benchmark.shared.dogefuzz.api import TaskReport
 from benchmark.shared.singleton import SingletonMeta
@@ -17,7 +19,7 @@ class BenchmarkService(metaclass=SingletonMeta):
     def __init__(self) -> None:
         self._server_service = ServerService()
         self._progress_service = ProgressService()
-        self._queue_service = ProgressService()
+        self._queue_service = QueueService()
         self._dogefuzz_service = DogefuzzService()
         self._contract_service = ContractService()
 
@@ -30,11 +32,15 @@ class BenchmarkService(metaclass=SingletonMeta):
         for entry in request.entries:
             contract_source = self._contract_service.read_contract(
                 entry.contract)
-            task_id = self._dogefuzz_service.create_task(
-                entry, contract_source)
-            print(f"the task ${task_id} has started")
-            result = self._wait_dogefuzz_respond()
-            benchmark_result.append(result)
+            self._dogefuzz_service.start_task(entry, contract_source)
+            # print(f"the task {task_id} has started")
+            result = self._wait_dogefuzz_respond(
+                timeout=int(entry.duration[:-1]))
+            # print(f"the task {task_id} has finished")
+            if result is None:
+                benchmark_result.append({})
+            else:
+                benchmark_result.append(result.to_dict())
             step = 100/len(request.entries)
             self._progress_service.update_progress_bar(step)
 
@@ -43,12 +49,16 @@ class BenchmarkService(metaclass=SingletonMeta):
 
         return benchmark_result
 
-    def _wait_dogefuzz_respond(self) -> TaskReport:
+    def _wait_dogefuzz_respond(self, timeout: int) -> TaskReport:
         report = None
+        limit = (timeout + 5) * 60  # duration + 5 minutes
+        time = 0
         while True:
-            task_report = self._dogefuzz_service.get()
-            if task_report is not None:
-                self._dogefuzz_service.mark_done()
-                report = task_report
+            report = self._queue_service.get()
+            if report is not None:
                 break
+            sleep(5)
+            time = time + 5
+            if time > limit:
+                return None
         return report
