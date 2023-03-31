@@ -46,7 +46,7 @@ class BenchmarkService(metaclass=SingletonMeta):
                         self._dogefuzz_service.start_task(entry, contract_source, fuzzing_type)
                     except Exception:
                         contract_executions.append({})
-                        step = 100/(len(request.entries)*len(entry.fuzzing.types)*len(entry.times))
+                        step = 100/(len(request.entries)*len(entry.fuzzing_types)*entry.times)
                         self._progress_service.update_progress_bar(step)
                         continue
 
@@ -56,7 +56,7 @@ class BenchmarkService(metaclass=SingletonMeta):
                         contract_executions.append({})
                     else:
                         contract_executions.append(result.to_dict())
-                    step = 100/(len(request.entries)*len(entry.fuzzing.types)*len(entry.times))
+                    step = 100/(len(request.entries)*len(entry.fuzzing_types)*entry.times)
                     self._progress_service.update_progress_bar(step)
                 executions[entry.contract][fuzzing_type] = contract_executions
 
