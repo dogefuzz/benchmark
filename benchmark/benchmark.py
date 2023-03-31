@@ -1,6 +1,8 @@
 """CLI moodule
 """
 import json
+import multiprocessing
+import signal
 
 from benchmark.services.contract import ContractService
 from benchmark.services.benchmark import BenchmarkService
@@ -8,8 +10,13 @@ from benchmark.services.progress import ProgressService
 from benchmark.services.drive import DriveService
 from benchmark.services.script import ScriptService
 from benchmark.shared.testing import RequestFactory
-from benchmark.shared.utils import validate_duration, validate_fuzzing_type
 
+stop_threads = multiprocessing.Event()
+
+def signal_handler(sig, frame):
+    print('You pressed Ctrl+C! shuting down benchmark...')
+    stop_threads.set()
+signal.signal(signal.SIGINT, signal_handler)
 
 class Benchmark():
     """the CLI options for benchmarking the Dogefuzz project
@@ -26,22 +33,19 @@ class Benchmark():
         """benchmarks based on a script file
         """
         request = self._script_service.read_testing_request_from_script()
-        result = self._benchmark_service.run(request)
+        result = self._benchmark_service.run(request, stop_threads)
         with open("result.json", "w", encoding="utf-8") as file:
             file.write(json.dumps(result, indent=4))
         print("SUCCESS")
 
-    def all(self, duration: str, fuzzing_type: str):
+    def all(self, duration: str, fuzzing_types: list, times: str):
         """benchmarks all available contracts
         """
-        validate_duration(duration)
-        validate_fuzzing_type(fuzzing_type)
-
         contracts = self._contract_service.list_contracts_from_contract_list()
         request = RequestFactory.from_contracts_list(
-            contracts, duration, fuzzing_type)
+            contracts, duration, fuzzing_types, times)
 
-        result = self._benchmark_service.run(request)
+        result = self._benchmark_service.run(request, stop_threads)
         with open("result.json", "w", encoding="utf-8") as file:
             file.write(json.dumps(result, indent=4))
         print("SUCCESS")
@@ -58,3 +62,4 @@ class Benchmark():
         print(f"read {len(contracts)} contracts:")
         for element in contracts:
             print(element)
+

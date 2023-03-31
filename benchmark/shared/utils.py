@@ -5,7 +5,7 @@ from benchmark.shared.constants import DURATION_60M, DURATION_10M, DURATION_15M,
 from benchmark.shared.exceptions import InvalidDuration, InvalidFuzzingType
 
 
-def validate_fuzzing_type(fuzzing_type: str) -> None:
+def validate_fuzzing_types(fuzzing_types: list) -> None:
     """validates the fuzzing type string
     """
     valid_values = [
@@ -13,8 +13,9 @@ def validate_fuzzing_type(fuzzing_type: str) -> None:
         FUZZING_TYPE_GREYBOX_FUZZING,
         FUZZING_TYPE_DIRECTED_GREYBOX_FUZZING,
     ]
-    if fuzzing_type not in valid_values:
-        raise InvalidFuzzingType("an invalid fuzzing type was provided")
+    for t in fuzzing_types:
+        if t not in valid_values:
+            raise InvalidFuzzingType("an invalid fuzzing type was provided")
 
 
 def validate_duration(duration: str) -> None:

@@ -2,15 +2,19 @@
 """
 
 
+from benchmark.shared.utils import validate_duration, validate_fuzzing_types
+
+
 class Entry():
     """represents a single testing entry, which is a single execution of the dogefuzz
     """
 
-    def __init__(self, contract: str, args: list, duration: str, fuzzing_type: str) -> None:
+    def __init__(self, contract: str, args: list, duration: str, fuzzing_types: list, times: int) -> None:
         self.contract = contract
         self.args = args
         self.duration = duration
-        self.fuzzing_type = fuzzing_type
+        self.fuzzing_types = fuzzing_types
+        self.times = times
 
 
 class Request():
@@ -27,12 +31,15 @@ class RequestFactory():
     """
 
     @classmethod
-    def from_contracts_list(cls, contracts: list, duration: str, fuzzing_type: str) -> Request:
+    def from_contracts_list(cls, contracts: list, duration: str, fuzzing_types: list, times: int) -> Request:
         """creates the Request class from a list of contracts
         """
+        validate_duration(duration)
+        validate_fuzzing_types(fuzzing_types)
+
         testing_entries = []
         for contract in contracts:
-            entry = Entry(contract["name"], [], duration, fuzzing_type)
+            entry = Entry(contract["name"], [], duration, fuzzing_types, times)
             testing_entries.append(entry)
         return Request(testing_entries)
 
@@ -40,13 +47,21 @@ class RequestFactory():
     def from_script(cls, script_content: map) -> Request:
         """creates the Request class from the script.json content
         """
+        duration = script_content["duration"]
+        fuzzing_types = script_content["fuzzingTypes"]
+        times = script_content["times"]
+
+        validate_duration(duration)
+        validate_fuzzing_types(fuzzing_types)
+
         testing_entries = []
-        for entry in script_content:
+        for entry in script_content["contracts"]:
             entry = Entry(
                 entry["name"],
                 entry["arguments"],
-                entry["duration"],
-                entry["fuzzing_type"]
+                duration,
+                fuzzing_types,
+                times
             )
             testing_entries.append(entry)
         return Request(testing_entries)

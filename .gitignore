@@ -19,3 +19,6 @@ script.json
 # project results
 results/
 result.json
+
+# logs
+.log
