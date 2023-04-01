@@ -38,12 +38,13 @@ class Benchmark():
             file.write(json.dumps(result, indent=4))
         print("SUCCESS")
 
-    def all(self, duration: str, fuzzing_types: list, times: str):
+    def all(self, duration: str, fuzzing_types: str, times: str):
         """benchmarks all available contracts
         """
+        fuzzing_types_list = fuzzing_types.split(",")
         contracts = self._contract_service.list_contracts_from_contract_list()
         request = RequestFactory.from_contracts_list(
-            contracts, duration, fuzzing_types, times)
+            contracts, duration, fuzzing_types_list, times)
 
         result = self._benchmark_service.run(request, stop_threads)
         with open("result.json", "w", encoding="utf-8") as file:
