@@ -24,6 +24,11 @@ services:
       FUZZER_HOST: 'dogefuzz'
       FUZZER_PORT: '3456'
     restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-X", "POST", "-h", "Content-Type: application/json", "--data", '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["0x1", false],"id":1}', "http://localhost:8545"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
     networks:
       - dogefuzz_benchmark
   vandal:
@@ -46,7 +51,15 @@ services:
       DOGEFUZZ_VANDAL_ENDPOINT: "http://vandal:5000"
       DOGEFUZZ_GETH_NODEADDRESS: "http://geth:8545"
       DOGEFUZZ_FUZZER_BATCHSIZE: 1
+      DOGEFUZZ_FUZZER_PENDINGTRANSACTIONSTHRESHOLD: 3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3456/ping"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "3456:3456"
     depends_on:
-      - geth
-      - vandal
+      geth:
+        condition: service_healthy
 
