@@ -191,6 +191,7 @@ class TaskReport():
 
     def __init__(
         self,
+        task_id: str,
         time_elapsed: str,
         contract_name: str,
         total_instructions: int,
@@ -201,6 +202,7 @@ class TaskReport():
         transactions: list,
         detected_weaknesses: list
     ) -> None:
+        self._task_id = task_id
         self._time_elapsed = time_elapsed
         self._contract_name = contract_name
         self._total_instructions = total_instructions
@@ -210,6 +212,12 @@ class TaskReport():
         self._min_distance_by_time = min_distance_by_time
         self._transactions = transactions
         self._detected_weaknesses = detected_weaknesses
+
+    @property
+    def task_id(self):
+        """task_id property
+        """
+        return self._task_id
 
     @property
     def time_elapsed(self):
@@ -269,6 +277,7 @@ class TaskReport():
         """gets dictionary representation
         """
         return {
+            "taskId": self._task_id,
             "timeElapsed": self._time_elapsed,
             "contractName": self._contract_name,
             "totalInstructions": self._total_instructions,
@@ -289,6 +298,7 @@ class TaskReport():
             transaction = TransactionReport.from_json(transaction_json)
             transactions.append(transaction)
         return TaskReport(
+            task_id=json_content["taskId"],
             time_elapsed=json_content["timeElapsed"],
             contract_name=json_content["contractName"],
             total_instructions=json_content["totalInstructions"],

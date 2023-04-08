@@ -3,6 +3,7 @@ this module contains the service that peforms operations in the benchmark
 """
 import multiprocessing
 
+from datetime import datetime
 from time import sleep
 from benchmark.services.contract import ContractService
 from benchmark.services.dogefuzz import DogefuzzService
@@ -39,24 +40,47 @@ class BenchmarkService(metaclass=SingletonMeta):
             for fuzzing_type in entry.fuzzing_types:
                 contract_executions = []
                 for _ in range(entry.times):
+                    result = {
+                        "startTime": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                    }
 
                     contract_source = self._contract_service.read_contract(
                         entry.contract)
+                    task_id = None
                     try:
-                        self._dogefuzz_service.start_task(entry, contract_source, fuzzing_type)
-                    except Exception:
-                        contract_executions.append({})
-                        step = 100/(len(request.entries)*len(entry.fuzzing_types)*entry.times)
+                        task_id = self._dogefuzz_service.start_task(
+                            entry, contract_source, fuzzing_type)
+                    except Exception as ex:
+                        result["status"] = "error"
+                        result["error"] = str(ex)
+                        result["execution"] = None
+                        result["endTime"] = datetime.now().strftime(
+                            "%d/%m/%Y %H:%M:%S")
+                        contract_executions.append(result)
+                        step = 100/(len(request.entries) *
+                                    len(entry.fuzzing_types)*entry.times)
                         self._progress_service.update_progress_bar(step)
                         continue
 
                     timeout = int(entry.duration[:-1])
-                    result = self._wait_dogefuzz_respond(timeout, stop)
+                    request_result = self._wait_dogefuzz_respond(
+                        task_id, timeout, stop)
                     if result is None:
-                        contract_executions.append({})
+                        result["status"] = "timeout"
+                        result["error"] = f"timeout after {timeout} + 5 minutes"
+                        result["execution"] = None
+                        result["endTime"] = datetime.now().strftime(
+                            "%d/%m/%Y %H:%M:%S")
+                        contract_executions.append(result)
                     else:
-                        contract_executions.append(result.to_dict())
-                    step = 100/(len(request.entries)*len(entry.fuzzing_types)*entry.times)
+                        result["status"] = "success"
+                        result["error"] = None
+                        result["endTime"] = datetime.now().strftime(
+                            "%d/%m/%Y %H:%M:%S")
+                        result["execution"] = request_result.to_dict()
+                        contract_executions.append(result)
+                    step = 100/(len(request.entries) *
+                                len(entry.fuzzing_types)*entry.times)
                     self._progress_service.update_progress_bar(step)
                 executions[entry.contract][fuzzing_type] = contract_executions
 
@@ -65,16 +89,16 @@ class BenchmarkService(metaclass=SingletonMeta):
 
         return executions
 
-    def _wait_dogefuzz_respond(self, timeout: int, stop: multiprocessing.Event) -> TaskReport:
+    def _wait_dogefuzz_respond(self, task_id: str, timeout: int, stop: multiprocessing.Event) -> TaskReport:
         report = None
-        limit = (timeout + 5) * 60  # duration + 5 minutes
+        limit = (timeout + 10) * 60  # duration + 5 minutes
         time = 0
         while True:
             if stop.is_set():
                 break
 
             report = self._queue_service.get()
-            if report is not None:
+            if report is not None and report.task_id == task_id:
                 break
             sleep(5)
             time = time + 5

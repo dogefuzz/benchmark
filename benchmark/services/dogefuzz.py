@@ -19,7 +19,7 @@ class DogefuzzService(metaclass=SingletonMeta):
         self._client = DogefuzzClient(
             self._config.dogefuzz_endpoint, self._config.dogefuzz_timeout)
 
-    def start_task(self, testing_entry: Entry, contract_source: str, type: str) -> str:
+    def start_task(self, testing_entry: Entry, contract_source: str, typ: str) -> str:
         """creates a task in dogefuzz service
         """
         filename_without_extension = splitext(testing_entry.contract)[0]
@@ -29,7 +29,7 @@ class DogefuzzService(metaclass=SingletonMeta):
             contract_name=filename_without_extension,
             arguments=testing_entry.args,
             duration=testing_entry.duration,
-            fuzzing_type=type,
+            fuzzing_type=typ,
             detectors=self._config.detectors,
         )
         response = self._client.start_task(request)

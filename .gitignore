@@ -21,4 +21,4 @@ results/
 result.json
 
 # logs
-.log
+*.log

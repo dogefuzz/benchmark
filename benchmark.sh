@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+mkdir -p results
+
 docker compose up -d
 
 docker build -t benchmark:1.0.0 --quiet .
@@ -14,6 +16,7 @@ docker run \
     --name dogefuzz_benchmark \
     -p "5000:5000" \
     -v "$PWD/result.json:/app/result.json" \
+    -v "$PWD/results:/app/results" \
     benchmark:1.0.0 \
     $@
 
