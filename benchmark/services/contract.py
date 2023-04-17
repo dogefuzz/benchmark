@@ -2,7 +2,7 @@ import csv
 import os
 
 from benchmark.config import Config
-from benchmark.shared.exceptions import ContractsNotFoundException
+from benchmark.shared.exceptions import ContractNotFoundException, ContractsNotFoundException
 
 NAME_COLUMN = 0
 VULNERABILITIES_COLUMN = 1
@@ -60,6 +60,9 @@ class ContractService():
         content = None
         contract_path = os.path.join(
             self._config.contracts_folder, "contracts", contract_name)
+        if not os.path.exists(contract_path):
+            raise ContractNotFoundException(
+                f"the contract {contract_name} was not found")
         with open(contract_path, 'r', encoding="utf-8") as file:
             content = file.read()
         return content

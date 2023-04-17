@@ -54,6 +54,11 @@ class Benchmark():
         self._write_result(result)
         print("SUCCESS")
 
+    def generate_results(self, timestamp: str):
+        """generates the results
+        """
+        self._progress_service.generate_results()
+
     def download_contracts(self):
         """downloads contracts from cloud
         """

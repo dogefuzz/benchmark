@@ -25,3 +25,11 @@ class InvalidDuration(Exception):
 
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
+
+
+class ContractNotFoundException(Exception):
+    """this exception will be raised when the contract is not found
+    """
+
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)

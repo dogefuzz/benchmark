@@ -11,6 +11,7 @@ from benchmark.services.progress import ProgressService
 from benchmark.services.queue import QueueService
 from benchmark.services.server import ServerService
 from benchmark.shared.dogefuzz.api import TaskReport
+from benchmark.shared.exceptions import ContractNotFoundException
 from benchmark.shared.singleton import SingletonMeta
 from benchmark.shared.testing import Request
 
@@ -44,8 +45,22 @@ class BenchmarkService(metaclass=SingletonMeta):
                         "startTime": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                     }
 
-                    contract_source = self._contract_service.read_contract(
-                        entry.contract)
+                    contract_source = None
+                    try:
+                        contract_source = self._contract_service.read_contract(
+                            entry.contract)
+                    except ContractNotFoundException as ex:
+                        result["status"] = "error"
+                        result["error"] = str(ex)
+                        result["execution"] = None
+                        result["endTime"] = datetime.now().strftime(
+                            "%d/%m/%Y %H:%M:%S")
+                        contract_executions.append(result)
+                        step = 100/(len(request.entries) *
+                                    len(entry.fuzzing_types)*entry.times)
+                        self._progress_service.update_progress_bar(step)
+                        continue
+
                     task_id = None
                     try:
                         task_id = self._dogefuzz_service.start_task(
