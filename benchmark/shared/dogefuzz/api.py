@@ -200,7 +200,8 @@ class TaskReport():
         min_distance: int,
         min_distance_by_time: TimeSeriesData,
         transactions: list,
-        detected_weaknesses: list
+        detected_weaknesses: list,
+        critical_instructions_hits: int,
     ) -> None:
         self._task_id = task_id
         self._time_elapsed = time_elapsed
@@ -212,6 +213,7 @@ class TaskReport():
         self._min_distance_by_time = min_distance_by_time
         self._transactions = transactions
         self._detected_weaknesses = detected_weaknesses
+        self._critical_instructions_hits = critical_instructions_hits
 
     @property
     def task_id(self):
@@ -273,6 +275,12 @@ class TaskReport():
         """
         return self._detected_weaknesses
 
+    @property
+    def critical_instructions_hits(self):
+        """critical_instructions_hits property
+        """
+        return self._critical_instructions_hits
+
     def to_dict(self):
         """gets dictionary representation
         """
@@ -286,6 +294,7 @@ class TaskReport():
             "detectedWeaknesses": self._detected_weaknesses,
             "coverageByTime": self._coverage_by_time.to_dict(),
             "minDistanceByTime": self._min_distance_by_time.to_dict(),
+            "criticalInstructionsHits": self._critical_instructions_hits,
             "transactions": [t.to_dict() for t in self._transactions],
         }
 
@@ -310,4 +319,5 @@ class TaskReport():
                 json_content["minDistanceByTime"]),
             transactions=transactions,
             detected_weaknesses=json_content["detectedWeaknesses"],
+            critical_instructions_hits=json_content["criticalInstructionsHits"],
         )
