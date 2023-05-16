@@ -292,9 +292,9 @@ class TaskReport():
             "coverage": self._coverage,
             "minDistance": self._min_distance,
             "detectedWeaknesses": self._detected_weaknesses,
+            "criticalInstructionsHits": self._critical_instructions_hits,
             "coverageByTime": self._coverage_by_time.to_dict(),
             "minDistanceByTime": self._min_distance_by_time.to_dict(),
-            "criticalInstructionsHits": self._critical_instructions_hits,
             "transactions": [t.to_dict() for t in self._transactions],
         }
 
