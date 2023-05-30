@@ -93,98 +93,6 @@ class TimeSeriesData():
         return TimeSeriesData(x_axis=json_content["x"], y_axis=json_content["y"])
 
 
-class TransactionReport():
-    """represents the detailed information of each transaction in the fuzzing task
-    """
-
-    def __init__(
-        self,
-        timestamp: str,
-        blockchain_hash: str,
-        inputs: list,
-        detected_weaknesses: list,
-        executed_instructions: list,
-        delta_coverage: int,
-        delta_min_distance: int,
-    ) -> None:
-        self._timestamp = timestamp
-        self._blockchain_hash = blockchain_hash
-        self._inputs = inputs
-        self._detected_weaknesses = detected_weaknesses
-        self._executed_instructions = executed_instructions
-        self._delta_coverage = delta_coverage
-        self._delta_min_distance = delta_min_distance
-
-    @property
-    def timestamp(self):
-        """timestamp property
-        """
-        return self._timestamp
-
-    @property
-    def blockchain_hash(self):
-        """blockchain_hash property
-        """
-        return self._blockchain_hash
-
-    @property
-    def inputs(self):
-        """inputs property
-        """
-        return self._inputs
-
-    @property
-    def detected_weaknesses(self):
-        """detected_weaknesses property
-        """
-        return self._detected_weaknesses
-
-    @property
-    def executed_instructions(self):
-        """executed_instructions property
-        """
-        return self._executed_instructions
-
-    @property
-    def delta_coverage(self):
-        """delta_coverage property
-        """
-        return self._delta_coverage
-
-    @property
-    def delta_min_distance(self):
-        """delta_min_distance property
-        """
-        return self._delta_min_distance
-
-    def to_dict(self):
-        """gets dictionary representation
-        """
-        return {
-            "timestamp": self._timestamp,
-            "blockchainHash": self._blockchain_hash,
-            "inputs": self._inputs,
-            "detectedWeaknesses": self._detected_weaknesses,
-            "executedInstructions": self._executed_instructions,
-            "delta_coverage": self._delta_coverage,
-            "delta_min_distance": self._delta_min_distance
-        }
-
-    @classmethod
-    def from_json(cls, json_content: map):
-        """deserializes object from json
-        """
-        return TransactionReport(
-            timestamp=json_content["timestamp"],
-            blockchain_hash=json_content["blockchainHash"],
-            inputs=json_content["inputs"],
-            detected_weaknesses=json_content["detectedWeaknesses"],
-            executed_instructions=json_content["executedInstructions"],
-            delta_coverage=json_content["deltaCoverage"],
-            delta_min_distance=json_content["deltaMinDistance"],
-        )
-
-
 class TaskReport():
     """represents the response of the webhook when the fuzzing task finishes
     """
@@ -195,25 +103,29 @@ class TaskReport():
         time_elapsed: str,
         contract_name: str,
         total_instructions: int,
-        coverage: int,
+        average_coverage: float,
+        max_coverage: int,
         coverage_by_time: TimeSeriesData,
         min_distance: int,
         min_distance_by_time: TimeSeriesData,
-        transactions: list,
         detected_weaknesses: list,
         critical_instructions_hits: int,
+        instructions: map,
+        instruction_hits_heat_map: map
     ) -> None:
         self._task_id = task_id
         self._time_elapsed = time_elapsed
         self._contract_name = contract_name
         self._total_instructions = total_instructions
-        self._coverage = coverage
+        self._average_coverage = average_coverage
+        self._max_coverage = max_coverage
         self._coverage_by_time = coverage_by_time
         self._min_distance = min_distance
         self._min_distance_by_time = min_distance_by_time
-        self._transactions = transactions
         self._detected_weaknesses = detected_weaknesses
         self._critical_instructions_hits = critical_instructions_hits
+        self._instructions = instructions
+        self._instruction_hits_heat_map = instruction_hits_heat_map
 
     @property
     def task_id(self):
@@ -240,10 +152,16 @@ class TaskReport():
         return self._total_instructions
 
     @property
-    def coverage(self):
-        """coverage property
+    def average_coverage(self):
+        """average_coverage property
         """
-        return self._coverage
+        return self._average_coverage
+
+    @property
+    def max_coverage(self):
+        """max_coverage property
+        """
+        return self._max_coverage
 
     @property
     def coverage_by_time(self):
@@ -264,12 +182,6 @@ class TaskReport():
         return self._min_distance_by_time
 
     @property
-    def transactions(self):
-        """transactions property
-        """
-        return self._transactions
-
-    @property
     def detected_weaknesses(self):
         """detected_weaknesses property
         """
@@ -281,6 +193,18 @@ class TaskReport():
         """
         return self._critical_instructions_hits
 
+    @property
+    def instructions(self):
+        """instructions property
+        """
+        return self._instructions
+
+    @property
+    def instruction_hits_heat_map(self):
+        """instruction_hits_heat_map property
+        """
+        return self._instruction_hits_heat_map
+
     def to_dict(self):
         """gets dictionary representation
         """
@@ -289,35 +213,35 @@ class TaskReport():
             "timeElapsed": self._time_elapsed,
             "contractName": self._contract_name,
             "totalInstructions": self._total_instructions,
-            "coverage": self._coverage,
+            "averageCoverage": self._average_coverage,
+            "maxCoverage": self._max_coverage,
             "minDistance": self._min_distance,
             "detectedWeaknesses": self._detected_weaknesses,
             "criticalInstructionsHits": self._critical_instructions_hits,
             "coverageByTime": self._coverage_by_time.to_dict(),
             "minDistanceByTime": self._min_distance_by_time.to_dict(),
-            "transactions": [t.to_dict() for t in self._transactions],
+            "instructions": self._instructions,
+            "instructionHitsHeatMap": self._instruction_hits_heat_map,
         }
 
     @classmethod
     def from_json(cls, json_content: map):
         """deserializes object form json
         """
-        transactions = []
-        for transaction_json in json_content["transactions"]:
-            transaction = TransactionReport.from_json(transaction_json)
-            transactions.append(transaction)
         return TaskReport(
             task_id=json_content["taskId"],
             time_elapsed=json_content["timeElapsed"],
             contract_name=json_content["contractName"],
             total_instructions=json_content["totalInstructions"],
-            coverage=json_content["coverage"],
+            average_coverage=json_content["averageCoverage"],
+            max_coverage=json_content["coverage"],
             coverage_by_time=TimeSeriesData.from_json(
                 json_content["coverageByTime"]),
             min_distance=json_content["minDistance"],
             min_distance_by_time=TimeSeriesData.from_json(
                 json_content["minDistanceByTime"]),
-            transactions=transactions,
             detected_weaknesses=json_content["detectedWeaknesses"],
             critical_instructions_hits=json_content["criticalInstructionsHits"],
+            instructions=json_content["instructions"],
+            instruction_hits_heat_map=json_content["instructionHitsHeatMap"],
         )

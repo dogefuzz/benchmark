@@ -27,7 +27,6 @@ docker run \
     --network-alias benchmark \
     --name dogefuzz_benchmark \
     -p "5000:5000" \
-    -v "$PWD/result.json:/app/result.json" \
     -v "$PWD/results:/app/results" \
     benchmark:1.0.0 \
     $@;
